@@ -11,6 +11,11 @@ permissions:
   id-token: write
   actions: read
 
+# ---- Prevent 2 simultaneous deploys ----
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build & Test
@@ -96,8 +101,3 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
-
-  # ---- Prevent 2 simultaneous deploys ----
-  concurrency:
-  group: pages-${{ github.ref }}
-  cancel-in-progress: true
