@@ -1,0 +1,73 @@
+# Node.js dependencies and build outputs
+node_modules/
+build/
+.cache/
+.cache-loader/
+dist/
+tmp/
+temp/
+
+# Docusaurus
+.docusaurus/
+static/generated/
+
+# Draw.io backups and temp files
+*.backup
+*.bak
+*.tmp
+
+# Doctum cache
+.cache.doctum/
+doctum.cache
+doctum.xml
+/cache/
+/build/
+
+# JSDoc temporary files
+_tmp_jsdoc/
+dump.json
+
+# System-specific files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# PHP / Composer (optional for docs project but safe to include)
+vendor/
+composer.lock
+*.php~
+
+# VSCode settings (optional, depending on team preferences)
+.vscode/
+
+# OS-specific
+ehthumbs.db
+Icon?
+desktop.ini
+
+# IDE / Editor configs
+.idea/
+*.iml
+*.sublime-workspace
+*.sublime-project
+
+# Diagram exports (important!)
+# Keep SVG and PNG exports in Git if you use them in your documentation
+!diagrams/**/*.svg
+!diagrams/**/*.png
+
+
+*storybook.log
+storybook-static
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

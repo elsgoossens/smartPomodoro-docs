@@ -1,0 +1,103 @@
+name: CI & Pages (Docs + Storybook) — Verified Only
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  actions: read
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      # ---- Prepare environment and code ----
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          # reuse the npm cache (~/.npm) automatically if OS, node version and package-lock.json hash are same
+          # between runs to avoid downloading all modules again
+          cache: "npm"
+
+      - name: Install
+        run: npm ci
+
+      - name: Install Playwright browsers (only if e2e present)
+        run: npx playwright install --with-deps
+        # only install playwright if there are e2e tests to run
+        if: ${{ hashFiles('tests/e2e/**') != '' }}
+
+      # ---- Run automated tests ----
+      - name: Lint (optional)
+        run: npm run lint --if-present
+
+      - name: Unit tests
+        run: npm test --if-present
+        if: ${{ hashFiles('tests/unit/**', 'src/**/*.test.*', 'src/**/*.spec.*') != '' }}
+
+      - name: E2E tests (Playwright)
+        run: npm run test:e2e --if-present
+        env:
+          CI: true
+        if: ${{ hashFiles('tests/e2e/**') != '' }}
+
+      # ---- Builds ----
+      - name: Build Docusaurus
+        run: npm run docs:build --if-present # outputs to ./build
+
+      - name: Build Storybook
+        run: npm run build:storybook --if-present # outputs to ./storybook-static
+
+      # ---- Package sites (root + /storybook) into one single Pages artifact ----
+      - name: Bundle deploy artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf dist
+          mkdir -p dist
+          # Docusaurus to root (include dotfiles like .nojekyll)
+          if [ -d build ]; then
+            cp -a build/. dist/
+          fi
+          # Storybook → /storybook (include dotfiles)
+          if [ -d storybook-static ]; then
+            mkdir -p dist/storybook
+            cp -a storybook-static/. dist/storybook/
+          fi
+
+      # ---- Configure & upload Pages artifact ----
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  # ---- Deploy to gh-pages (push to main, not for PRs)----
+  deploy:
+    name: Deploy to GitHub Pages
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  # ---- Prevent 2 simultaneous deploys ----
+  concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true

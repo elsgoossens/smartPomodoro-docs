@@ -1,0 +1,5 @@
+/* Minimal custom theme overrides for Smart Pomodoro docs */
+:root {
+  /* You can tune these later */
+  --ifm-color-primary: #3b82f6;
+}
